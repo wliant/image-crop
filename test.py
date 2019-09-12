@@ -29,7 +29,7 @@ from tensorflow.keras.regularizers import l2
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras import optimizers
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from tensorflow.keras.models import Sequential
 
 
@@ -41,12 +41,23 @@ plt.rcParams['ytick.left']      = False
 plt.rcParams['ytick.labelleft'] = False
 plt.rcParams['font.family']     = 'Arial'
 
-
+IMG_SIZE = 300
 # .............................................................................
-datagen = ImageDataGenerator(validation_split=0.2)
-train_it = datagen.flow_from_directory('data/train/', shuffle=True, target_size=(32,32), class_mode='categorical', batch_size=8, subset='training')
+datagen = ImageDataGenerator(
+      rotation_range=40,
+      width_shift_range=0.2,
+      height_shift_range=0.2,
+      rescale=1./255,
+      shear_range=0.2,
+      zoom_range=0.2,
+      horizontal_flip=True,
+      fill_mode='nearest',
+      validation_split=0.2)
+
+
+train_it = datagen.flow_from_directory('data/train/', shuffle=True, target_size=(IMG_SIZE,IMG_SIZE), class_mode='categorical', batch_size=8, subset='training')
 # load and iterate validation dataset
-val_it = datagen.flow_from_directory('data/train/', shuffle=True, target_size=(32,32), class_mode='categorical', batch_size=8, subset='validation')
+val_it = datagen.flow_from_directory('data/train/', shuffle=True, target_size=(IMG_SIZE,IMG_SIZE), class_mode='categorical', batch_size=8, subset='validation')
 # load and iterate test dataset
 #test_it = datagen.flow_from_directory('data/test/', target_size=(256,256), class_mode='categorical', batch_size=8, subset)
 
@@ -66,23 +77,27 @@ checkpoint      = ModelCheckpoint(filepath,
 csv_logger      = CSVLogger(modelname +'.csv')
 callbacks_list  = [checkpoint,csv_logger]
 def createModel():
-    inputs = Input(shape=(32,32,3))
-    y = Conv2D(256, 3, padding='same', activation='relu')(inputs)
-    y = MaxPooling2D(pool_size=(2,2))(y)
-    y = Conv2D(384, 3, padding='same', activation='relu')(y)
-    y = MaxPooling2D(pool_size=(2,2))(y)
-    y = Conv2D(512, 3, padding='same', activation='relu')(y)
-    y = MaxPooling2D(pool_size=(2,2))(y)
-    y = Flatten()(y)
-    y = Dense(1024, activation='relu')(y)
-    y = Dense(512, activation='relu')(y)
-    y = Dense(256, activation='relu')(y)
-    y = Dense(128, activation='relu')(y)
-    y = Dense(64, activation='relu')(y)
-    y = Dense(32, activation='relu')(y)
-    y = Dense(3, activation='softmax')(y)
-    model = Model(inputs=inputs, outputs=y)
-    model.compile(loss='kullback_leibler_divergence', optimizer='adam', metrics=['accuracy'])
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size = (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(96, kernel_size=(3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(32, kernel_size=(3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.2))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))#model.add(Dropout(0.3))
+    model.add(Dense(3, activation = 'softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
 # define model
