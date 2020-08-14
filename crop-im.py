@@ -122,11 +122,11 @@ class MainApp:
     def start(self):
         self.root.mainloop()
 
+import json
+with open("config.json", "r") as configFile:
+    configJson = json.load(configFile)
 
-folders = [
-    ("original\\train\\cendol", "data\\train\\cendol"), 
-    ("original\\train\\tauhuay", "data\\train\\tauhuay"), 
-    ("original\\train\\tausuan", "data\\train\\tausuan")]
+folders = [(config["src"], config["dest"]) for config in configJson]
 
 files = []
 for fromDir, toDir in folders:

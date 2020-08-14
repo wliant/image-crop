@@ -1,0 +1,14 @@
+[
+    {
+        "src": "original\\train\\cendol",
+        "dest": "data\\train\\cendol"
+    },
+    {
+        "src": "original\\train\\tauhuay",
+        "dest": "data\\train\\tauhuay"
+    },
+    {
+        "src": "original\\train\\tausuan",
+        "dest": "data\\train\\tausuan"
+    }
+]
