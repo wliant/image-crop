@@ -15,7 +15,7 @@ This repository contains a project for image processing and classification using
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/your-repo-name.git
+    git clone https://github.com/wliant/image-crop.git
     cd your-repo-name
     ```
 
